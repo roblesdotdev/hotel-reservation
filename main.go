@@ -6,6 +6,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/roblesdotdev/hotel-reservation/api"
+	"github.com/roblesdotdev/hotel-reservation/db"
+	"github.com/roblesdotdev/hotel-reservation/types"
 )
 
 func main() {
@@ -15,7 +17,21 @@ func main() {
 	app := fiber.New()
 	apiv1 := app.Group("/api/v1")
 
-	apiv1.Get("/user", api.HandleGetUsers)
-	apiv1.Get("/user/:id", api.HandleGetUserById)
+	memoryUserStore := db.NewMemoryUserStore([]*types.User{
+		{
+			ID:        "001",
+			FirstName: "John",
+			LastName:  "Doe",
+		},
+		{
+			ID:        "002",
+			FirstName: "Mary",
+			LastName:  "Jane",
+		},
+	})
+	userHandler := api.NewUserHandler(memoryUserStore)
+
+	apiv1.Get("/user", userHandler.HandleGetUsers)
+	apiv1.Get("/user/:id", userHandler.HandleGetUserById)
 	app.Listen(fmt.Sprintf(":%s", *port))
 }
